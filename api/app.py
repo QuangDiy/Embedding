@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="BGE-M3 Embedding API",
+    title="Jina-Embeddings-v3 Embedding API",
     description="OpenAI-compatible embedding API powered by Triton Inference Server",
     version="1.0.0"
 )
@@ -20,15 +20,16 @@ app = FastAPI(
 # Initialize Triton client
 triton_client = TritonEmbeddingClient(
     triton_url="triton:8000",
-    model_name="bge-m3"
+    model_name="jina-embeddings-v3"
 )
 
 
 class EmbeddingRequest(BaseModel):
     """OpenAI-compatible embedding request"""
     input: Union[str, List[str]] = Field(..., description="Text or list of texts to embed")
-    model: str = Field(default="bge-m3", description="Model name")
+    model: str = Field(default="jina-embeddings-v3", description="Model name")
     encoding_format: Optional[str] = Field(default="float", description="Encoding format (float or base64)")
+    task: Optional[str] = Field(default="retrieval.query", description="Task type: retrieval.query, retrieval.passage, separation, classification, text-matching")
     user: Optional[str] = Field(default=None, description="User identifier")
 
 
@@ -70,11 +71,20 @@ def load_tokenizer():
         logger.error(f"Failed to load tokenizer from {TOKENIZER_PATH}: {e}")
         logger.info("Falling back to download from HuggingFace Hub...")
         try:
-            tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-m3")
+            tokenizer = AutoTokenizer.from_pretrained("jinaai/jina-embeddings-v3")
             logger.info("Tokenizer loaded from HuggingFace Hub")
         except Exception as e2:
             logger.error(f"Failed to load tokenizer from HuggingFace: {e2}")
             raise
+
+# Task mapping for Jina-embeddings-v3 LoRA adapters
+TASK_MAPPING = {
+    "retrieval.query": 0,
+    "retrieval.passage": 1,
+    "separation": 2,
+    "classification": 3,
+    "text-matching": 4
+}
 
 def prepare_inputs_for_triton(texts: List[str]) -> tuple:
     """
@@ -96,7 +106,7 @@ def prepare_inputs_for_triton(texts: List[str]) -> tuple:
         texts,
         padding=True,
         truncation=True,
-        max_length=8192,  # BGE-M3 supports up to 8192 tokens
+        max_length=8192,  # Jina-embeddings-v3 supports up to 8192 tokens
         return_tensors="np"
     )
     
@@ -134,7 +144,7 @@ async def root():
     """Health check endpoint"""
     return {
         "status": "running",
-        "service": "BGE-M3 Embedding API",
+        "service": "Jina-Embeddings-v3 Embedding API",
         "version": "1.0.0"
     }
 
@@ -148,7 +158,7 @@ async def health_check():
         return {
             "status": "healthy",
             "triton_server": "connected",
-            "model": "bge-m3"
+            "model": "jina-embeddings-v3"
         }
     else:
         raise HTTPException(
@@ -184,8 +194,12 @@ async def create_embeddings(request: EmbeddingRequest):
         # Prepare inputs for Triton
         input_ids, attention_mask = prepare_inputs_for_triton(texts)
         
+        # Get task_id from request
+        task_name = getattr(request, 'task', 'retrieval.query')
+        task_id = TASK_MAPPING.get(task_name, 0)
+        
         # Call Triton to get embeddings
-        embeddings = triton_client.get_embeddings(input_ids, attention_mask)
+        embeddings = triton_client.get_embeddings(input_ids, attention_mask, task_id)
         
         # Prepare response in OpenAI format
         embedding_data = []
@@ -228,12 +242,12 @@ async def list_models():
         "object": "list",
         "data": [
             {
-                "id": "bge-m3",
+                "id": "jina-embeddings-v3",
                 "object": "model",
                 "created": int(time.time()),
-                "owned_by": "organization",
+                "owned_by": "jinaai",
                 "permission": [],
-                "root": "bge-m3",
+                "root": "jina-embeddings-v3",
                 "parent": None
             }
         ]

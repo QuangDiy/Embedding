@@ -1,5 +1,5 @@
 """
-Script to verify all required files for BGE-M3 model
+Script to verify all required files for Jina-Embeddings-v3 model
 """
 import os
 import sys
@@ -9,20 +9,18 @@ from pathlib import Path
 REQUIRED_FILES = [
     "model.onnx",
     "model.onnx_data",
-    "sentencepiece.bpe.model",
     "tokenizer.json",
     "tokenizer_config.json",
     "special_tokens_map.json",
-    "config.json",
-    "Constant_7_attr__value"
+    "config.json"
 ]
 
-MODEL_DIR = Path("model_repository/bge-m3/1")
+MODEL_DIR = Path("model_repository/jina-embeddings-v3/1")
 
 def check_files():
     """Check all required files"""
     print("=" * 60)
-    print("Checking Model Files - BGE-M3 ONNX")
+    print("Checking Model Files - Jina-Embeddings-v3 ONNX")
     print("=" * 60)
     print()
     
@@ -62,7 +60,7 @@ def check_files():
             print(f"   - {f}")
         print()
         print("📥 Download all files from:")
-        print("   https://huggingface.co/BAAI/bge-m3/tree/main/onnx")
+        print("   https://huggingface.co/jinaai/jina-embeddings-v3/tree/main/onnx")
         print()
         print("📂 Place them in directory:")
         print(f"   {MODEL_DIR.absolute()}")

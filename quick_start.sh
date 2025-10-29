@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Quick start script for BGE-M3 Embedding Service
+# Quick start script for Jina-Embeddings-v3 Embedding Service
 
 set -e
 
 echo "=========================================="
-echo "BGE-M3 Embedding Service - Quick Start"
+echo "Jina-Embeddings-v3 Embedding Service - Quick Start"
 echo "=========================================="
 echo ""
 

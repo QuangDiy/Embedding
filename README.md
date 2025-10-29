@@ -1,11 +1,11 @@
-# BGE-M3 ONNX Embedding Service with Triton Server
+# Jina-Embeddings-v3 ONNX Embedding Service with Triton Server
 
-Deploy BAAI/bge-m3 ONNX model on Triton Inference Server with an OpenAI-compatible embedding API, optimized for CPU.
+Deploy jinaai/jina-embeddings-v3 ONNX model on Triton Inference Server with an OpenAI-compatible embedding API, optimized for CPU.
 
 ## 📋 Requirements
 
 - Docker & Docker Compose
-- ONNX model files for BAAI/bge-m3
+- ONNX model files for jinaai/jina-embeddings-v3
 - At least 8GB RAM available
 - 10GB free disk space
 
@@ -14,16 +14,14 @@ Deploy BAAI/bge-m3 ONNX model on Triton Inference Server with an OpenAI-compatib
 ```
 triton/
 ├── model_repository/
-│   └── bge-m3/
+│   └── jina-embeddings-v3/
 │       ├── 1/                     # ← PLACE ALL MODEL FILES HERE
-│       │   ├── model.onnx         # (725 KB - structure)
-│       │   ├── model.onnx_data    # (2.27 GB - weights) ⭐ REQUIRED!
-│       │   ├── sentencepiece.bpe.model
+│       │   ├── model.onnx         # ONNX model structure
+│       │   ├── model.onnx_data    # Model weights (large file) ⭐ REQUIRED!
 │       │   ├── tokenizer.json
 │       │   ├── tokenizer_config.json
 │       │   ├── special_tokens_map.json
-│       │   ├── config.json
-│       │   └── Constant_7_attr__value
+│       │   └── config.json
 │       └── config.pbtxt
 ├── api/
 │   ├── app.py                     # Main API application
@@ -36,18 +34,16 @@ triton/
 
 ## ⚠️ Important: Model Files
 
-BGE-M3 ONNX model consists of **8 FILES** (not just model.onnx!):
+Jina-Embeddings-v3 ONNX model consists of **6 FILES** (not just model.onnx!):
 
-1. ✅ `model.onnx` (725 KB - model structure)
-2. ✅ `model.onnx_data` (2.27 GB - model weights) **← CRITICAL!**
-3. ✅ `sentencepiece.bpe.model` (5.07 MB)
-4. ✅ `tokenizer.json` (17.1 MB)
-5. ✅ `tokenizer_config.json` (1.17 KB)
-6. ✅ `special_tokens_map.json` (964 B)
-7. ✅ `config.json` (698 B)
-8. ✅ `Constant_7_attr__value` (65.6 KB)
+1. ✅ `model.onnx` - ONNX model structure
+2. ✅ `model.onnx_data` - Model weights (large file) **← CRITICAL!**
+3. ✅ `tokenizer.json` - Tokenizer vocabulary
+4. ✅ `tokenizer_config.json` - Tokenizer configuration
+5. ✅ `special_tokens_map.json` - Special tokens
+6. ✅ `config.json` - Model configuration
 
-**All 8 files are REQUIRED!**
+**All 6 files are REQUIRED!**
 
 ## 🚀 Quick Start
 
@@ -64,9 +60,9 @@ bash download_model.sh
 ```
 
 **Option B - Manual:**
-1. Visit: https://huggingface.co/BAAI/bge-m3/tree/main/onnx
-2. Download all 8 files
-3. Place them in `model_repository/bge-m3/1/`
+1. Visit: https://huggingface.co/jinaai/jina-embeddings-v3/tree/main/onnx
+2. Download all 6 files
+3. Place them in `model_repository/jina-embeddings-v3/1/`
 
 ### Step 2: Verify Model Files
 
@@ -119,7 +115,7 @@ curl http://localhost:8002/v2/health/ready
 # Test embedding
 curl -X POST http://localhost:8000/v1/embeddings \
   -H "Content-Type: application/json" \
-  -d '{"input": "Hello, world!", "model": "bge-m3"}'
+  -d '{"input": "Hello, world!", "model": "jina-embeddings-v3", "task": "text-matching"}'
 
 # Run example script
 python example_usage.py
@@ -141,7 +137,8 @@ curl -X POST http://localhost:8000/v1/embeddings \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Hello, world!",
-    "model": "bge-m3"
+    "model": "jina-embeddings-v3",
+    "task": "text-matching"
   }'
 
 # Multiple texts (batching)
@@ -149,7 +146,8 @@ curl -X POST http://localhost:8000/v1/embeddings \
   -H "Content-Type: application/json" \
   -d '{
     "input": ["Hello, world!", "How are you?", "Goodbye!"],
-    "model": "bge-m3"
+    "model": "jina-embeddings-v3",
+    "task": "text-matching"
   }'
 ```
 
@@ -165,7 +163,8 @@ response = requests.post(
     url,
     json={
         "input": "Hello, world!",
-        "model": "bge-m3"
+        "model": "jina-embeddings-v3",
+        "task": "text-matching"
     }
 )
 
@@ -182,7 +181,8 @@ response = requests.post(
             "Triton Inference Server is awesome",
             "FastAPI makes APIs easy"
         ],
-        "model": "bge-m3"
+        "model": "jina-embeddings-v3",
+        "task": "text-matching"
     }
 )
 
@@ -205,7 +205,7 @@ client = OpenAI(
 
 response = client.embeddings.create(
     input="Hello, world!",
-    model="bge-m3"
+    model="jina-embeddings-v3"
 )
 
 embedding = response.data[0].embedding
@@ -225,12 +225,34 @@ print(f"First 5 values: {embedding[:5]}")
       "index": 0
     }
   ],
-  "model": "bge-m3",
+  "model": "jina-embeddings-v3",
   "usage": {
     "prompt_tokens": 3,
     "total_tokens": 3
   }
 }
+```
+
+### Task Types
+
+Jina-Embeddings-v3 supports 5 different task types via LoRA adapters:
+
+- **`retrieval.query`** (default): For search queries
+- **`retrieval.passage`**: For documents to be retrieved
+- **`text-matching`**: For similarity/matching tasks
+- **`classification`**: For classification tasks
+- **`separation`**: For separation tasks
+
+**Example with task:**
+
+```bash
+curl -X POST http://localhost:8000/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "What is machine learning?",
+    "model": "jina-embeddings-v3",
+    "task": "retrieval.query"
+  }'
 ```
 
 ### Additional Endpoints
@@ -255,7 +277,7 @@ Triton is configured with dynamic batching in `config.pbtxt`:
 - Preferred batch sizes: 4, 8, 16
 - Max queue delay: 100 microseconds
 
-To adjust, edit `model_repository/bge-m3/config.pbtxt`:
+To adjust, edit `model_repository/jina-embeddings-v3/config.pbtxt`:
 
 ```protobuf
 max_batch_size: 16  # Reduce if running out of memory
@@ -290,7 +312,7 @@ In `docker-compose.yml`, you can configure:
 ```yaml
 environment:
   - TRITON_URL=triton:8000
-  - MODEL_NAME=bge-m3
+  - MODEL_NAME=jina-embeddings-v3
   - TOKENIZER_PATH=/tokenizer
 ```
 
@@ -322,7 +344,7 @@ docker-compose logs api
 
 **Test Triton directly:**
 ```bash
-curl http://localhost:8002/v2/models/bge-m3/ready
+curl http://localhost:8002/v2/models/jina-embeddings-v3/ready
 ```
 
 **Common issues:**
@@ -337,8 +359,8 @@ This means `model.onnx_data` file is missing. This is the main 2.27 GB file cont
 **Solution:**
 ```bash
 # Verify the file exists and is correct size
-ls -lh model_repository/bge-m3/1/model.onnx_data
-# Should show ~2.27 GB
+ls -lh model_repository/jina-embeddings-v3/1/model.onnx_data
+# Should show the large weights file
 ```
 
 ### ❌ Out of Memory
@@ -378,7 +400,7 @@ curl http://localhost:8003/metrics
 
 ```bash
 # Get model stats
-curl http://localhost:8002/v2/models/bge-m3/stats
+curl http://localhost:8002/v2/models/jina-embeddings-v3/stats
 ```
 
 ### Expected Performance (CPU)
@@ -476,18 +498,23 @@ server {
 
 ## 📝 Notes
 
-1. **Tokenization**: Code uses HuggingFace tokenizer. If your ONNX model has integrated tokenization, adjust `prepare_inputs_for_triton()` function.
+1. **Task Selection**: Jina-Embeddings-v3 uses LoRA adapters for different tasks. Choose the appropriate task type for your use case.
 
-2. **Model Input/Output**: Ensure input/output names and shapes in `config.pbtxt` match your actual ONNX model.
+2. **Tokenization**: Uses XLM-RoBERTa tokenizer from HuggingFace. The tokenizer is automatically loaded from model files.
 
-3. **Memory**: BGE-M3 is a large model - ensure at least 8GB RAM available (16GB+ recommended for production).
+3. **Mean Pooling**: The model outputs `last_hidden_state` which is automatically mean-pooled and normalized by the client.
 
-4. **Batch Processing**: Use batching for better throughput. Dynamic batching in Triton automatically optimizes batch sizes.
+4. **Model Input/Output**: Ensure input/output names and shapes in `config.pbtxt` match your actual ONNX model.
+
+5. **Memory**: Jina-Embeddings-v3 is a large model - ensure at least 8GB RAM available (16GB+ recommended for production).
+
+6. **Batch Processing**: Use batching for better throughput. Dynamic batching in Triton automatically optimizes batch sizes.
 
 ## 🔗 Resources
 
 - [Triton Inference Server Documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/)
-- [BAAI/bge-m3 Model](https://huggingface.co/BAAI/bge-m3)
+- [Jina-Embeddings-v3 Model](https://huggingface.co/jinaai/jina-embeddings-v3)
+- [Jina-Embeddings-v3 Paper](https://arxiv.org/abs/2409.10173)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [OpenAI Embeddings API](https://platform.openai.com/docs/api-reference/embeddings)
 - [ONNX Runtime](https://onnxruntime.ai/)
@@ -519,7 +546,7 @@ curl http://localhost:8000/health
 # Test embedding
 curl -X POST http://localhost:8000/v1/embeddings \
   -H "Content-Type: application/json" \
-  -d '{"input": "test", "model": "bge-m3"}'
+  -d '{"input": "test", "model": "jina-embeddings-v3", "task": "text-matching"}'
 
 # Verify model files
 python verify_model_files.py

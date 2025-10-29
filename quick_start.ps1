@@ -1,7 +1,7 @@
-# Quick start script for BGE-M3 Embedding Service (Windows PowerShell)
+# Quick start script for Jina-Embeddings-v3 Embedding Service (Windows PowerShell)
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "BGE-M3 Embedding Service - Quick Start" -ForegroundColor Cyan
+Write-Host "Jina-Embeddings-v3 Embedding Service - Quick Start" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 

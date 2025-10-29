@@ -1,5 +1,5 @@
 """
-Example usage of BGE-M3 Embedding API
+Example usage of Jina-Embeddings-v3 Embedding API
 """
 import requests
 import json
@@ -10,8 +10,9 @@ def test_single_text():
     url = "http://localhost:8000/v1/embeddings"
     
     payload = {
-        "input": "Hello, world! This is a test of the BGE-M3 embedding model.",
-        "model": "bge-m3"
+        "input": "Hello, world! This is a test of the Jina-Embeddings-v3 model.",
+        "model": "jina-embeddings-v3",
+        "task": "text-matching"
     }
     
     response = requests.post(url, json=payload)
@@ -42,7 +43,8 @@ def test_multiple_texts():
     
     payload = {
         "input": texts,
-        "model": "bge-m3"
+        "model": "jina-embeddings-v3",
+        "task": "text-matching"
     }
     
     response = requests.post(url, json=payload)
@@ -72,9 +74,11 @@ def test_with_openai_client():
             base_url="http://localhost:8000/v1"
         )
         
+        # Note: OpenAI client doesn't support custom task parameter
+        # Use requests library for full control
         response = client.embeddings.create(
             input="Testing with OpenAI client library",
-            model="bge-m3"
+            model="jina-embeddings-v3"
         )
         
         print(f"\n✓ OpenAI client test")
@@ -129,7 +133,8 @@ def compute_similarity(text1: str, text2: str):
     
     payload = {
         "input": [text1, text2],
-        "model": "bge-m3"
+        "model": "jina-embeddings-v3",
+        "task": "text-matching"
     }
     
     response = requests.post(url, json=payload)
@@ -150,9 +155,35 @@ def compute_similarity(text1: str, text2: str):
         print(f"✗ Error: {response.status_code}")
 
 
+def test_different_tasks():
+    """Test with different task types"""
+    url = "http://localhost:8000/v1/embeddings"
+    
+    tasks = ["retrieval.query", "retrieval.passage", "text-matching", "classification"]
+    text = "Machine learning is a subset of artificial intelligence."
+    
+    print(f"\n✓ Testing different tasks")
+    print(f"  Text: {text[:50]}...")
+    
+    for task in tasks:
+        payload = {
+            "input": text,
+            "model": "jina-embeddings-v3",
+            "task": task
+        }
+        
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            result = response.json()
+            embedding = result['data'][0]['embedding']
+            print(f"  - Task '{task}': dimension = {len(embedding)}")
+        else:
+            print(f"  - Task '{task}': Error {response.status_code}")
+
+
 if __name__ == "__main__":
     print("=" * 60)
-    print("BGE-M3 Embedding API - Example Usage")
+    print("Jina-Embeddings-v3 Embedding API - Example Usage")
     print("=" * 60)
     
     # Run tests
@@ -168,7 +199,16 @@ if __name__ == "__main__":
         "A feline is resting on the sofa."
     )
     
+    # Test different tasks
+    test_different_tasks()
+    
     print("\n" + "=" * 60)
     print("All tests completed!")
     print("=" * 60)
+    print("\nAvailable tasks:")
+    print("  - retrieval.query: For search queries")
+    print("  - retrieval.passage: For documents to be retrieved")
+    print("  - text-matching: For similarity/matching tasks")
+    print("  - classification: For classification tasks")
+    print("  - separation: For separation tasks")
 

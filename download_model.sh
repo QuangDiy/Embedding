@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Script to download BGE-M3 ONNX model from HuggingFace
+# Script to download Jina-Embeddings-v3 ONNX model from HuggingFace
 # Requirements: git-lfs
 
 set -e
 
 echo "=========================================="
-echo "Download BGE-M3 ONNX Model Files"
+echo "Download Jina-Embeddings-v3 ONNX Model Files"
 echo "=========================================="
 echo ""
 
@@ -22,7 +22,7 @@ if ! command -v git-lfs &> /dev/null; then
     exit 1
 fi
 
-TARGET_DIR="model_repository/bge-m3/1"
+TARGET_DIR="model_repository/jina-embeddings-v3/1"
 
 echo "Target directory: $TARGET_DIR"
 echo ""
@@ -36,16 +36,16 @@ cd "$TEMP_DIR"
 
 # Clone with sparse checkout
 echo "Cloning repository (sparse checkout)..."
-git clone --depth 1 --filter=blob:none --sparse https://huggingface.co/BAAI/bge-m3
+git clone --depth 1 --filter=blob:none --sparse https://huggingface.co/jinaai/jina-embeddings-v3
 
-cd bge-m3
+cd jina-embeddings-v3
 
 # Checkout only onnx directory
 git sparse-checkout set onnx
 
 # Pull LFS files
 echo ""
-echo "Downloading LFS files (this may take a while - 2.27 GB)..."
+echo "Downloading LFS files (this may take a while)..."
 git lfs pull --include "onnx/*"
 
 # Copy files

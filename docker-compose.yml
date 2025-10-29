@@ -23,15 +23,15 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile.api
-    container_name: bge-m3-api
+      dockerfile: dockerfile
+    container_name: jina-embeddings-v3-api
     ports:
       - "8000:8000"
     volumes:
-      - ./model_repository/bge-m3/1:/tokenizer:ro
+      - ./model_repository/jina-embeddings-v3/1:/tokenizer:ro
     environment:
       - TRITON_URL=triton:8000
-      - MODEL_NAME=bge-m3
+      - MODEL_NAME=jina-embeddings-v3
       - TOKENIZER_PATH=/tokenizer
     depends_on:
       triton:

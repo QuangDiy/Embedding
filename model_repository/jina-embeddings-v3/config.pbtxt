@@ -1,4 +1,4 @@
-name: "bge-m3"
+name: "jina-embeddings-v3"
 platform: "onnxruntime_onnx"
 max_batch_size: 32
 
@@ -12,14 +12,20 @@ input [
     name: "attention_mask"
     data_type: TYPE_INT64
     dims: [-1]
+  },
+  {
+    name: "task_id"
+    data_type: TYPE_INT64
+    dims: [1]
+    reshape: { shape: [ ] }
   }
 ]
 
 output [
   {
-    name: "sentence_embedding"
+    name: "last_hidden_state"
     data_type: TYPE_FP32
-    dims: [-1]
+    dims: [-1, -1]
   }
 ]
 
