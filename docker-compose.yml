@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  triton:
+    image: nvcr.io/nvidia/tritonserver:24.01-py3
+    container_name: triton-server
+    command: tritonserver --model-repository=/models --backend-config=onnxruntime,default-max-batch-size=32
+    volumes:
+      - ./model_repository:/models
+    ports:
+      - "8001:8001"  # gRPC
+      - "8002:8000"  # HTTP
+      - "8003:8002"  # Metrics
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - triton-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: bge-m3-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./model_repository/bge-m3/1:/tokenizer:ro
+    environment:
+      - TRITON_URL=triton:8000
+      - MODEL_NAME=bge-m3
+      - TOKENIZER_PATH=/tokenizer
+    depends_on:
+      triton:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - triton-network
+
+networks:
+  triton-network:
+    driver: bridge
+
