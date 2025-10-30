@@ -3,22 +3,29 @@ Test script for Jina-Embeddings-v3 API
 """
 import requests
 import json
+import time
 
 API_URL = "http://localhost:8000"
 
 def test_health():
     """Test health check endpoint"""
     print("\n=== Testing Health Check ===")
+    start = time.time()
     response = requests.get(f"{API_URL}/health")
+    elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
+    print(f"Response Time: {elapsed:.2f}ms")
     print(f"Response: {json.dumps(response.json(), indent=2)}")
     return response.status_code == 200
 
 def test_list_models():
     """Test list models endpoint"""
     print("\n=== Testing List Models ===")
+    start = time.time()
     response = requests.get(f"{API_URL}/v1/models")
+    elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
+    print(f"Response Time: {elapsed:.2f}ms")
     print(f"Response: {json.dumps(response.json(), indent=2)}")
     return response.status_code == 200
 
@@ -33,8 +40,11 @@ def test_single_text_embedding():
     }
     
     print(f"Request: {json.dumps(payload, indent=2)}")
+    start = time.time()
     response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+    elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
+    print(f"Response Time: {elapsed:.2f}ms")
     
     if response.status_code == 200:
         result = response.json()
@@ -63,8 +73,11 @@ def test_batch_text_embeddings():
     }
     
     print(f"Request: {json.dumps(payload, indent=2)}")
+    start = time.time()
     response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+    elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
+    print(f"Response Time: {elapsed:.2f}ms")
     
     if response.status_code == 200:
         result = response.json()
@@ -96,8 +109,11 @@ def test_different_tasks():
         }
         
         print(f"\nTask: {task}")
+        start = time.time()
         response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+        elapsed = (time.time() - start) * 1000
         print(f"Status Code: {response.status_code}")
+        print(f"Response Time: {elapsed:.2f}ms")
         
         if response.status_code == 200:
             result = response.json()
@@ -130,7 +146,10 @@ def test_semantic_similarity():
         "task": "text-matching"
     }
     
+    start = time.time()
     response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+    elapsed = (time.time() - start) * 1000
+    print(f"Response Time: {elapsed:.2f}ms")
     
     if response.status_code == 200:
         result = response.json()

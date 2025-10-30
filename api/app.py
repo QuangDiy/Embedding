@@ -7,7 +7,6 @@ import logging
 import time
 from triton_client import TritonEmbeddingClient
 
-# Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Initialize Triton client
 triton_client = TritonEmbeddingClient(
     triton_url="triton:8000",
     model_name="jina-embeddings-v3"
@@ -54,7 +52,6 @@ class EmbeddingResponse(BaseModel):
     usage: EmbeddingUsage
 
 
-# Load tokenizer from local files (mounted from model repository)
 import os
 from transformers import AutoTokenizer
 
@@ -77,7 +74,6 @@ def load_tokenizer():
             logger.error(f"Failed to load tokenizer from HuggingFace: {e2}")
             raise
 
-# Task mapping for Jina-embeddings-v3 LoRA adapters
 TASK_MAPPING = {
     "retrieval.query": 0,
     "retrieval.passage": 1,
@@ -101,12 +97,11 @@ def prepare_inputs_for_triton(texts: List[str]) -> tuple:
     if tokenizer is None:
         load_tokenizer()
     
-    # Tokenize texts
     encoded = tokenizer(
         texts,
         padding=True,
         truncation=True,
-        max_length=8192,  # Jina-embeddings-v3 supports up to 8192 tokens
+        max_length=8192, 
         return_tensors="np"
     )
     
@@ -120,11 +115,9 @@ def prepare_inputs_for_triton(texts: List[str]) -> tuple:
 async def startup_event():
     """Startup and connect to Triton Server"""
     try:
-        # Load tokenizer
         load_tokenizer()
         logger.info("Tokenizer loaded successfully")
         
-        # Connect to Triton
         triton_client.connect()
         logger.info("Successfully connected to Triton Server")
     except Exception as e:
@@ -179,7 +172,6 @@ async def create_embeddings(request: EmbeddingRequest):
         EmbeddingResponse with embeddings
     """
     try:
-        # Normalize input to list
         if isinstance(request.input, str):
             texts = [request.input]
         else:
@@ -191,17 +183,13 @@ async def create_embeddings(request: EmbeddingRequest):
                 detail="Input cannot be empty"
             )
         
-        # Prepare inputs for Triton
         input_ids, attention_mask = prepare_inputs_for_triton(texts)
         
-        # Get task_id from request
         task_name = getattr(request, 'task', 'retrieval.query')
         task_id = TASK_MAPPING.get(task_name, 0)
         
-        # Call Triton to get embeddings
         embeddings = triton_client.get_embeddings(input_ids, attention_mask, task_id)
         
-        # Prepare response in OpenAI format
         embedding_data = []
         for idx, emb in enumerate(embeddings):
             embedding_data.append(
@@ -211,7 +199,6 @@ async def create_embeddings(request: EmbeddingRequest):
                 )
             )
         
-        # Estimate token count (can be improved)
         total_tokens = sum(len(text.split()) for text in texts)
         
         response = EmbeddingResponse(

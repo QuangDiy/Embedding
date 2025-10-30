@@ -52,7 +52,6 @@ class TritonEmbeddingClient:
         if self.client is None:
             self.connect()
         
-        # Prepare input tensors
         inputs = []
         inputs.append(
             httpclient.InferInput("input_ids", input_ids.shape, "INT64")
@@ -64,7 +63,6 @@ class TritonEmbeddingClient:
         )
         inputs[1].set_data_from_numpy(attention_mask)
         
-        # Add task_id input - one task_id per batch item
         batch_size = input_ids.shape[0]
         task_id_array = np.full((batch_size, 1), task_id, dtype=np.int64)
         inputs.append(
@@ -72,13 +70,11 @@ class TritonEmbeddingClient:
         )
         inputs[2].set_data_from_numpy(task_id_array)
         
-        # Prepare output
         outputs = []
         outputs.append(
-            httpclient.InferRequestedOutput("last_hidden_state")
+            httpclient.InferRequestedOutput("13049")
         )
         
-        # Send inference request
         try:
             response = self.client.infer(
                 model_name=self.model_name,
@@ -86,11 +82,9 @@ class TritonEmbeddingClient:
                 outputs=outputs
             )
             
-            # Get last hidden state
-            last_hidden_state = response.as_numpy("last_hidden_state")
-            
-            # Apply mean pooling
-            embeddings = self._mean_pooling(last_hidden_state, attention_mask)
+            embeddings = response.as_numpy("13049")
+            logger.info(f"Embeddings shape from Triton: {embeddings.shape}")
+            logger.info(f"Embeddings dtype: {embeddings.dtype}")
             
             return embeddings
             
@@ -109,17 +103,13 @@ class TritonEmbeddingClient:
         Returns:
             pooled_embeddings: Mean pooled embeddings, shape (batch_size, hidden_size)
         """
-        # Expand attention mask to match hidden state dimensions
         attention_mask_expanded = np.expand_dims(attention_mask, axis=-1).astype(np.float32)
         
-        # Apply mask and sum
         sum_embeddings = np.sum(model_output * attention_mask_expanded, axis=1)
         sum_mask = np.clip(np.sum(attention_mask_expanded, axis=1), a_min=1e-9, a_max=None)
         
-        # Calculate mean
         mean_embeddings = sum_embeddings / sum_mask
         
-        # Normalize embeddings (L2 normalization)
         norms = np.linalg.norm(mean_embeddings, ord=2, axis=1, keepdims=True)
         normalized_embeddings = mean_embeddings / np.clip(norms, a_min=1e-9, a_max=None)
         
