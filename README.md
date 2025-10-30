@@ -31,6 +31,10 @@ triton/
 ├── Dockerfile.api
 └── README.md
 ```
+## Docker
+
+docker build -t embedding-service .
+docker run -p 8000:8000 embedding-service
 
 ## ⚠️ Important: Model Files
 
@@ -49,7 +53,7 @@ Jina-Embeddings-v3 ONNX model consists of **6 FILES** (not just model.onnx!):
 
 ### Step 1: Download Model Files
 
-**Option A - Automated (Recommended):**
+**Option A - Automated via Hugging Face Hub (Recommended):**
 
 ```bash
 # Linux/macOS
@@ -57,6 +61,13 @@ bash download_model.sh
 
 # Windows PowerShell
 .\download_model.ps1
+```
+
+This uses Hugging Face Hub (no git-lfs required). If you encounter rate limits or need access to gated models, set an access token before running the script:
+
+```bash
+export HF_TOKEN=your_hf_token  # Linux/macOS
+$env:HF_TOKEN="your_hf_token"  # Windows PowerShell
 ```
 
 **Option B - Manual:**

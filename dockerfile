@@ -9,11 +9,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install dependencies
-COPY api/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install transformers to use tokenizer
-RUN pip install --no-cache-dir transformers torch --index-url https://download.pytorch.org/whl/cpu
+# Install transformers and CPU-only PyTorch wheels
+RUN pip install --no-cache-dir transformers torch --extra-index-url https://download.pytorch.org/whl/cpu
+
+# Copy and execute model download script
+COPY download_with_hf.py .
+RUN python download_with_hf.py && rm download_with_hf.py
 
 # Copy application code
 COPY api/ .

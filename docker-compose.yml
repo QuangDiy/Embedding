@@ -1,8 +1,22 @@
 version: '3.8'
 
 services:
+  model_downloader:
+    image: python:3.10-slim
+    container_name: model-downloader
+    working_dir: /work
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+      - ./:/work:ro
+      - ./model_repository:/work/model_repository
+    command: /bin/sh -lc "pip install --no-cache-dir huggingface_hub && python /work/download_with_hf.py"
+    restart: "no"
+    networks:
+      - triton-network
+
   triton:
-    image: nvcr.io/nvidia/tritonserver:24.01-py3
+    image: nvcr.io/nvidia/tritonserver:24.08-py3
     container_name: triton-server
     command: tritonserver --model-repository=/models --backend-config=onnxruntime,default-max-batch-size=32
     volumes:
@@ -17,6 +31,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    depends_on:
+      model_downloader:
+        condition: service_completed_successfully
     networks:
       - triton-network
 
@@ -34,6 +51,8 @@ services:
       - MODEL_NAME=jina-embeddings-v3
       - TOKENIZER_PATH=/tokenizer
     depends_on:
+      model_downloader:
+        condition: service_completed_successfully
       triton:
         condition: service_healthy
     healthcheck:

@@ -64,10 +64,11 @@ class TritonEmbeddingClient:
         )
         inputs[1].set_data_from_numpy(attention_mask)
         
-        # Add task_id input
-        task_id_array = np.array(task_id, dtype=np.int64)
+        # Add task_id input - one task_id per batch item
+        batch_size = input_ids.shape[0]
+        task_id_array = np.full((batch_size, 1), task_id, dtype=np.int64)
         inputs.append(
-            httpclient.InferInput("task_id", [], "INT64")
+            httpclient.InferInput("task_id", task_id_array.shape, "INT64")
         )
         inputs[2].set_data_from_numpy(task_id_array)
         
