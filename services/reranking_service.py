@@ -110,18 +110,6 @@ class RerankingService:
         
         return doc_texts
     
-    def calculate_token_count(self, documents: List[str]) -> int:
-        """
-        Calculate approximate token count for usage statistics.
-        
-        Args:
-            documents: List of document texts
-            
-        Returns:
-            Approximate token count
-        """
-        return sum(len(doc.split()) for doc in documents)
-    
     def is_ready(self) -> bool:
         """Check if service is ready."""
         return self._repository.is_ready()

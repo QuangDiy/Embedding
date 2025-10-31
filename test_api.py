@@ -303,7 +303,6 @@ def test_rerank_score_ordering():
         for i, (item, score) in enumerate(zip(result['data'], scores)):
             print(f"  {i+1}. Score: {score:.4f} (Index: {item['index']})")
         
-        # Check if scores are in descending order
         is_sorted = all(scores[i] >= scores[i+1] for i in range(len(scores)-1))
         print(f"\nScores properly sorted (descending): {is_sorted}")
         
@@ -363,11 +362,9 @@ def main():
     print("=" * 60)
     
     try:
-        # Basic tests
         test_health()
         test_list_models()
         
-        # Embedding tests
         test_single_text_embedding()
         test_batch_text_embeddings()
         test_different_tasks()

@@ -30,19 +30,16 @@ async def create_embeddings(
         EmbeddingResponse with embeddings
     """
     try:
-        # Normalize input to list
         if isinstance(request.input, str):
             texts = [request.input]
         else:
             texts = request.input
         
-        # Generate embeddings
         embedding_models = service.create_embeddings(
             texts=texts,
             task=request.task or "retrieval.query"
         )
         
-        # Convert to API response format
         embedding_data = []
         for model in embedding_models:
             embedding_data.append(
@@ -52,15 +49,12 @@ async def create_embeddings(
                 )
             )
         
-        # Calculate token usage
-        total_tokens = service.calculate_token_count(texts)
-        
         response = EmbeddingResponse(
             data=embedding_data,
             model=request.model,
             usage=EmbeddingUsage(
-                prompt_tokens=total_tokens,
-                total_tokens=total_tokens
+                prompt_tokens=0,
+                total_tokens=0
             )
         )
         
@@ -91,4 +85,3 @@ async def create_embeddings(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Internal server error: {str(e)}"
         )
-

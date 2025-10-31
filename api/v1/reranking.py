@@ -29,7 +29,6 @@ async def rerank_documents(
         RerankResponse with reranked documents and relevance scores
     """
     try:
-        # Rerank documents
         result_models = service.rerank_documents(
             query=request.query,
             documents=request.documents,
@@ -37,7 +36,6 @@ async def rerank_documents(
             return_documents=request.return_documents
         )
         
-        # Convert to API response format
         results = []
         for model in result_models:
             result = RerankResult(
@@ -47,14 +45,10 @@ async def rerank_documents(
             )
             results.append(result)
         
-        # Extract document texts for token counting
-        doc_texts = service._extract_document_texts(request.documents)
-        total_tokens = service.calculate_token_count(doc_texts)
-        
         response = RerankResponse(
             data=results,
             model=request.model,
-            usage={"total_tokens": total_tokens}
+            usage={"total_tokens": 0}
         )
         
         logger.info(f"Successfully reranked {len(request.documents)} documents")

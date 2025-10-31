@@ -77,18 +77,6 @@ class EmbeddingService:
         logger.info(f"Successfully generated {len(embedding_models)} embeddings")
         return embedding_models
     
-    def calculate_token_count(self, texts: List[str]) -> int:
-        """
-        Calculate approximate token count for usage statistics.
-        
-        Args:
-            texts: List of texts
-            
-        Returns:
-            Approximate token count
-        """
-        return sum(len(text.split()) for text in texts)
-    
     def is_ready(self) -> bool:
         """Check if service is ready."""
         return self._repository.is_ready()
