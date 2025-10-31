@@ -35,7 +35,7 @@ After starting, services will be available at:
 - **Triton gRPC**: http://localhost:8001
 - **Metrics**: http://localhost:8003
 
-## 🧪 Test the Service
+## Test the Service
 
 ```bash
 curl http://localhost:8000/health
@@ -94,6 +94,24 @@ response = requests.post(
     }
 )
 print(response.json())
+```
+
+## Testing
+
+Run the comprehensive test suite:
+
+```bash
+# Install test dependencies
+pip install -r requirements.txt
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=. --cov-report=html
+
+# Run specific tests
+pytest tests/test_services.py -v
 ```
 
 ## 🔗 Resources

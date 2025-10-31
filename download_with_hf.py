@@ -31,11 +31,7 @@ def download_model(repo_id: str, file_path: str, target_dir: Path, model_name: s
     Returns:
         True if successful, False otherwise
     """
-    try:
-        from huggingface_hub import hf_hub_download
-    except ImportError:
-        print("❌ huggingface_hub is not installed. Install with: pip install huggingface_hub", flush=True)
-        return False
+    from huggingface_hub import hf_hub_download
     
     ensure_dir(target_dir)
 
@@ -55,19 +51,18 @@ def download_model(repo_id: str, file_path: str, target_dir: Path, model_name: s
         )
         print(f"✓ Downloaded to: {downloaded_path}", flush=True)
         
-        # Verify the file was downloaded
         expected_file = target_dir / file_path
         if expected_file.exists():
             file_size = expected_file.stat().st_size / (1024 * 1024)  # Size in MB
-            print(f"✓ Successfully downloaded: {expected_file}", flush=True)
+            print(f"Successfully downloaded: {expected_file}", flush=True)
             print(f"  File size: {file_size:.2f} MB", flush=True)
             return True
         else:
-            print(f"❌ Model file not found at expected location: {expected_file}", flush=True)
+            print(f"Model file not found at expected location: {expected_file}", flush=True)
             return False
             
     except Exception as e:
-        print(f"❌ Download failed: {e}", flush=True)
+        print(f"Download failed: {e}", flush=True)
         return False
 
 
@@ -78,7 +73,6 @@ def main() -> int:
     
     success = True
     
-    # Download Jina Embeddings v3
     embeddings_success = download_model(
         repo_id="jinaai/jina-embeddings-v3",
         file_path="onnx/model_fp16.onnx",
@@ -87,7 +81,6 @@ def main() -> int:
     )
     success = success and embeddings_success
     
-    # Download Jina Reranker v2
     reranker_success = download_model(
         repo_id="jinaai/jina-reranker-v2-base-multilingual",
         file_path="onnx/model_fp16.onnx",
@@ -98,9 +91,9 @@ def main() -> int:
 
     print(f"\n{'='*60}", flush=True)
     if success:
-        print("✓ All models downloaded successfully!", flush=True)
+        print("All models downloaded successfully!", flush=True)
     else:
-        print("❌ Some models failed to download", flush=True)
+        print("Some models failed to download", flush=True)
     print("=" * 60, flush=True)
     
     return 0 if success else 1
@@ -108,5 +101,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
-

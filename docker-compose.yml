@@ -44,14 +44,12 @@ services:
     container_name: jina-api
     ports:
       - "8000:8000"
-    volumes:
-      - ./model_repository/jina-embeddings-v3/1:/tokenizer:ro
-      - ./model_repository/jina-reranker-v2/1:/reranker_tokenizer:ro
     environment:
       - TRITON_URL=triton:8000
-      - MODEL_NAME=jina-embeddings-v3
-      - TOKENIZER_PATH=/tokenizer
-      - RERANKER_TOKENIZER_PATH=/reranker_tokenizer
+      - EMBEDDING_MODEL_NAME=jina-embeddings-v3
+      - RERANKER_MODEL_NAME=jina-reranker-v2
+      - TOKENIZER_PATH=jinaai/jina-embeddings-v3
+      - RERANKER_TOKENIZER_PATH=jinaai/jina-reranker-v2-base-multilingual
     depends_on:
       model_downloader:
         condition: service_completed_successfully
@@ -62,7 +60,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 30s
     networks:
       - triton-network
 
