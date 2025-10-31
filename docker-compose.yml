@@ -41,15 +41,17 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-    container_name: jina-embeddings-v3-api
+    container_name: jina-api
     ports:
       - "8000:8000"
     volumes:
       - ./model_repository/jina-embeddings-v3/1:/tokenizer:ro
+      - ./model_repository/jina-reranker-v2/1:/reranker_tokenizer:ro
     environment:
       - TRITON_URL=triton:8000
       - MODEL_NAME=jina-embeddings-v3
       - TOKENIZER_PATH=/tokenizer
+      - RERANKER_TOKENIZER_PATH=/reranker_tokenizer
     depends_on:
       model_downloader:
         condition: service_completed_successfully

@@ -46,5 +46,4 @@ logs/
 .env.local
 
 ## Model
-model_repository/jina-embeddings-v3/1/*
-
+model_repository/*

@@ -167,10 +167,199 @@ def test_semantic_similarity():
     else:
         print(f"Error: {response.text}")
 
+def test_basic_rerank():
+    """Test basic reranking functionality"""
+    print("\n=== Testing Basic Rerank ===")
+    
+    payload = {
+        "query": "What is machine learning?",
+        "documents": [
+            "Machine learning is a branch of artificial intelligence.",
+            "Python is a popular programming language.",
+            "Deep learning is a subset of machine learning.",
+            "The weather is nice today.",
+            "Neural networks are used in deep learning."
+        ],
+        "model": "jina-reranker-v2",
+        "top_n": 3
+    }
+    
+    print(f"Request: {json.dumps(payload, indent=2)}")
+    start = time.time()
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    elapsed = (time.time() - start) * 1000
+    print(f"Status Code: {response.status_code}")
+    print(f"Response Time: {elapsed:.2f}ms")
+    
+    if response.status_code == 200:
+        result = response.json()
+        print(f"Model: {result['model']}")
+        print(f"Number of results: {len(result['data'])}")
+        print(f"\nReranked documents (top {payload['top_n']}):")
+        for i, item in enumerate(result['data']):
+            print(f"  {i+1}. [Index: {item['index']}, Score: {item['relevance_score']:.4f}]")
+            if 'document' in item and item['document']:
+                print(f"     {item['document']}")
+    else:
+        print(f"Error: {response.text}")
+    
+    return response.status_code == 200
+
+
+def test_rerank_without_return_documents():
+    """Test reranking without returning document text"""
+    print("\n=== Testing Rerank without Document Text ===")
+    
+    payload = {
+        "query": "artificial intelligence",
+        "documents": [
+            "AI is transforming the world.",
+            "Cooking recipes for beginners.",
+            "Machine learning algorithms."
+        ],
+        "model": "jina-reranker-v2",
+        "return_documents": False
+    }
+    
+    print(f"Request: {json.dumps(payload, indent=2)}")
+    start = time.time()
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    elapsed = (time.time() - start) * 1000
+    print(f"Status Code: {response.status_code}")
+    print(f"Response Time: {elapsed:.2f}ms")
+    
+    if response.status_code == 200:
+        result = response.json()
+        print(f"\nResults (indices and scores only):")
+        for i, item in enumerate(result['data']):
+            print(f"  {i+1}. Index: {item['index']}, Score: {item['relevance_score']:.4f}")
+            print(f"     Document included: {'document' in item and item['document'] is not None}")
+    else:
+        print(f"Error: {response.text}")
+    
+    return response.status_code == 200
+
+
+def test_rerank_with_dict_documents():
+    """Test reranking with dictionary documents"""
+    print("\n=== Testing Rerank with Dict Documents ===")
+    
+    payload = {
+        "query": "climate change solutions",
+        "documents": [
+            {"text": "Renewable energy is key to fighting climate change.", "id": "doc1"},
+            {"text": "Pizza recipes from Italy.", "id": "doc2"},
+            {"text": "Carbon capture technology can help reduce emissions.", "id": "doc3"}
+        ],
+        "model": "jina-reranker-v2"
+    }
+    
+    print(f"Request: {json.dumps(payload, indent=2)}")
+    start = time.time()
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    elapsed = (time.time() - start) * 1000
+    print(f"Status Code: {response.status_code}")
+    print(f"Response Time: {elapsed:.2f}ms")
+    
+    if response.status_code == 200:
+        result = response.json()
+        print(f"\nReranked documents:")
+        for i, item in enumerate(result['data']):
+            print(f"  {i+1}. Index: {item['index']}, Score: {item['relevance_score']:.4f}")
+            if 'document' in item and item['document']:
+                print(f"     Document: {item['document']}")
+    else:
+        print(f"Error: {response.text}")
+    
+    return response.status_code == 200
+
+
+def test_rerank_score_ordering():
+    """Test that rerank scores are properly ordered"""
+    print("\n=== Testing Rerank Score Ordering ===")
+    
+    payload = {
+        "query": "python programming",
+        "documents": [
+            "Python is a high-level programming language.",
+            "Java is also a programming language.",
+            "The sky is blue.",
+            "Python programming tutorials for beginners.",
+            "Cooking with olive oil."
+        ],
+        "model": "jina-reranker-v2"
+    }
+    
+    start = time.time()
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    elapsed = (time.time() - start) * 1000
+    print(f"Response Time: {elapsed:.2f}ms")
+    
+    if response.status_code == 200:
+        result = response.json()
+        scores = [item['relevance_score'] for item in result['data']]
+        
+        print(f"\nScores in order:")
+        for i, (item, score) in enumerate(zip(result['data'], scores)):
+            print(f"  {i+1}. Score: {score:.4f} (Index: {item['index']})")
+        
+        # Check if scores are in descending order
+        is_sorted = all(scores[i] >= scores[i+1] for i in range(len(scores)-1))
+        print(f"\nScores properly sorted (descending): {is_sorted}")
+        
+        if is_sorted:
+            print("[OK] Scores are correctly ordered from highest to lowest")
+        else:
+            print("[FAIL] Scores are NOT properly ordered")
+    else:
+        print(f"Error: {response.text}")
+    
+    return response.status_code == 200
+
+
+def test_rerank_top_n():
+    """Test top_n parameter with different values"""
+    print("\n=== Testing Rerank top_n Parameter ===")
+    
+    documents = [
+        "Machine learning is a subset of AI.",
+        "Python is used for data science.",
+        "The cat sat on the mat.",
+        "Deep learning uses neural networks.",
+        "JavaScript is for web development."
+    ]
+    
+    for top_n in [1, 2, 3, None]:
+        payload = {
+            "query": "artificial intelligence and machine learning",
+            "documents": documents,
+            "model": "jina-reranker-v2",
+            "top_n": top_n
+        }
+        
+        print(f"\nTesting with top_n={top_n}")
+        response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+        
+        if response.status_code == 200:
+            result = response.json()
+            expected_count = top_n if top_n is not None else len(documents)
+            actual_count = len(result['data'])
+            print(f"  Expected results: {expected_count}, Got: {actual_count}")
+            if actual_count == expected_count:
+                print(f"  [OK] Correct number of results")
+            else:
+                print(f"  [FAIL] Incorrect number of results")
+        else:
+            print(f"  Error: {response.text}")
+            return False
+    
+    return True
+
+
 def main():
     """Run all tests"""
     print("=" * 60)
-    print("Jina-Embeddings-v3 API Test Suite")
+    print("Jina AI API Test Suite (Embeddings + Reranking)")
     print("=" * 60)
     
     try:
@@ -183,19 +372,23 @@ def main():
         test_batch_text_embeddings()
         test_different_tasks()
         
-        # Advanced tests
         test_semantic_similarity()
+        
+        test_basic_rerank()
+        test_rerank_without_return_documents()
+        test_rerank_with_dict_documents()
+        test_rerank_score_ordering()
+        test_rerank_top_n()
         
         print("\n" + "=" * 60)
         print("All tests completed!")
         print("=" * 60)
         
     except requests.exceptions.ConnectionError:
-        print("\n❌ Error: Cannot connect to API at http://localhost:8000")
+        print("\n[ERROR] Cannot connect to API at http://localhost:8000")
         print("Make sure the API is running with: docker-compose up")
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[ERROR] {e}")
 
 if __name__ == "__main__":
     main()
-
