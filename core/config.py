@@ -1,5 +1,3 @@
-"""Configuration settings for the application."""
-
 import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings
@@ -22,6 +20,9 @@ class Settings(BaseSettings):
     api_title: str = "Jina AI API"
     api_description: str = "OpenAI-compatible embedding and reranking API powered by Triton Inference Server"
     api_version: str = "1.0.0"
+    
+    api_key: str | None = None
+    require_api_key: bool = False
     
     class Config:
         env_file = ".env"

@@ -1,5 +1,3 @@
-"""Health check and info endpoints."""
-
 import logging
 import time
 from fastapi import APIRouter, HTTPException, status, Depends
@@ -17,7 +15,6 @@ router = APIRouter(tags=["health"])
 
 @router.get("/")
 async def root():
-    """Root endpoint with service information."""
     settings = get_settings()
     return {
         "status": "running",

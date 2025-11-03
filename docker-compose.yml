@@ -50,6 +50,8 @@ services:
       - RERANKER_MODEL_NAME=jina-reranker-v2
       - TOKENIZER_PATH=jinaai/jina-embeddings-v3
       - RERANKER_TOKENIZER_PATH=jinaai/jina-reranker-v2-base-multilingual
+      - API_KEY=${API_KEY:-}
+      - REQUIRE_API_KEY=${REQUIRE_API_KEY:-false}
     depends_on:
       model_downloader:
         condition: service_completed_successfully

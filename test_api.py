@@ -1,11 +1,19 @@
-"""
-Test script for Jina-Embeddings-v3 API
-"""
 import requests
 import json
 import time
+import os
 
 API_URL = "http://localhost:8000"
+API_KEY = os.environ.get("API_KEY") 
+API_KEY = 'sk-5d09610e6f52443ca2db0d3d5b01c9f35d09610e6f52443ca2db0d3d5b01c9f3'
+
+def get_headers():
+    """Get request headers with optional API key"""
+    headers = {"Content-Type": "application/json"}
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
+    return headers
+
 
 def test_health():
     """Test health check endpoint"""
@@ -18,16 +26,21 @@ def test_health():
     print(f"Response: {json.dumps(response.json(), indent=2)}")
     return response.status_code == 200
 
+
 def test_list_models():
     """Test list models endpoint"""
     print("\n=== Testing List Models ===")
     start = time.time()
-    response = requests.get(f"{API_URL}/v1/models")
+    response = requests.get(f"{API_URL}/v1/models", headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
     print(f"Response Time: {elapsed:.2f}ms")
-    print(f"Response: {json.dumps(response.json(), indent=2)}")
+    if response.status_code == 200:
+        print(f"Response: {json.dumps(response.json(), indent=2)}")
+    else:
+        print(f"Error: {response.text}")
     return response.status_code == 200
+
 
 def test_single_text_embedding():
     """Test embedding generation for a single text"""
@@ -41,7 +54,7 @@ def test_single_text_embedding():
     
     print(f"Request: {json.dumps(payload, indent=2)}")
     start = time.time()
-    response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+    response = requests.post(f"{API_URL}/v1/embeddings", json=payload, headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
     print(f"Response Time: {elapsed:.2f}ms")
@@ -57,6 +70,7 @@ def test_single_text_embedding():
         print(f"Error: {response.text}")
     
     return response.status_code == 200
+
 
 def test_batch_text_embeddings():
     """Test embedding generation for multiple texts"""
@@ -74,7 +88,7 @@ def test_batch_text_embeddings():
     
     print(f"Request: {json.dumps(payload, indent=2)}")
     start = time.time()
-    response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+    response = requests.post(f"{API_URL}/v1/embeddings", json=payload, headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
     print(f"Response Time: {elapsed:.2f}ms")
@@ -94,6 +108,7 @@ def test_batch_text_embeddings():
     
     return response.status_code == 200
 
+
 def test_different_tasks():
     """Test different task types"""
     print("\n=== Testing Different Task Types ===")
@@ -110,7 +125,7 @@ def test_different_tasks():
         
         print(f"\nTask: {task}")
         start = time.time()
-        response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+        response = requests.post(f"{API_URL}/v1/embeddings", json=payload, headers=get_headers())
         elapsed = (time.time() - start) * 1000
         print(f"Status Code: {response.status_code}")
         print(f"Response Time: {elapsed:.2f}ms")
@@ -122,6 +137,7 @@ def test_different_tasks():
             print(f"First 5 values: {embedding[:5]}")
         else:
             print(f"Error: {response.text}")
+
 
 def compute_similarity(embedding1, embedding2):
     """Compute cosine similarity between two embeddings"""
@@ -147,7 +163,7 @@ def test_semantic_similarity():
     }
     
     start = time.time()
-    response = requests.post(f"{API_URL}/v1/embeddings", json=payload)
+    response = requests.post(f"{API_URL}/v1/embeddings", json=payload, headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Response Time: {elapsed:.2f}ms")
     
@@ -166,6 +182,7 @@ def test_semantic_similarity():
                 print(f"  Text {i} <-> Text {j}: {similarity:.4f}")
     else:
         print(f"Error: {response.text}")
+
 
 def test_basic_rerank():
     """Test basic reranking functionality"""
@@ -186,7 +203,7 @@ def test_basic_rerank():
     
     print(f"Request: {json.dumps(payload, indent=2)}")
     start = time.time()
-    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload, headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
     print(f"Response Time: {elapsed:.2f}ms")
@@ -223,7 +240,7 @@ def test_rerank_without_return_documents():
     
     print(f"Request: {json.dumps(payload, indent=2)}")
     start = time.time()
-    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload, headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
     print(f"Response Time: {elapsed:.2f}ms")
@@ -256,7 +273,7 @@ def test_rerank_with_dict_documents():
     
     print(f"Request: {json.dumps(payload, indent=2)}")
     start = time.time()
-    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload, headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Status Code: {response.status_code}")
     print(f"Response Time: {elapsed:.2f}ms")
@@ -291,7 +308,7 @@ def test_rerank_score_ordering():
     }
     
     start = time.time()
-    response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+    response = requests.post(f"{API_URL}/v1/rerank", json=payload, headers=get_headers())
     elapsed = (time.time() - start) * 1000
     print(f"Response Time: {elapsed:.2f}ms")
     
@@ -337,7 +354,7 @@ def test_rerank_top_n():
         }
         
         print(f"\nTesting with top_n={top_n}")
-        response = requests.post(f"{API_URL}/v1/rerank", json=payload)
+        response = requests.post(f"{API_URL}/v1/rerank", json=payload, headers=get_headers())
         
         if response.status_code == 200:
             result = response.json()
@@ -359,6 +376,12 @@ def main():
     """Run all tests"""
     print("=" * 60)
     print("Jina AI API Test Suite (Embeddings + Reranking)")
+    print("=" * 60)
+    
+    if API_KEY:
+        print(f"Using API Key: {API_KEY[:10]}..." if len(API_KEY) > 10 else f"Using API Key: {API_KEY}")
+    else:
+        print("No API Key set (using public access)")
     print("=" * 60)
     
     try:

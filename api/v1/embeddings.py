@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from models.schemas import EmbeddingRequest, EmbeddingResponse, EmbeddingData, EmbeddingUsage
 from services.embedding_service import EmbeddingService
-from api.dependencies import get_embedding_service
+from api.dependencies import get_embedding_service, verify_api_key
 from core.exceptions import ApplicationError, ValidationError, InferenceError
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,8 @@ router = APIRouter(prefix="/v1", tags=["embeddings"])
 @router.post("/embeddings", response_model=EmbeddingResponse)
 async def create_embeddings(
     request: EmbeddingRequest,
-    service: EmbeddingService = Depends(get_embedding_service)
+    service: EmbeddingService = Depends(get_embedding_service),
+    _: None = Depends(verify_api_key)
 ):
     """
     Create embeddings for text input (OpenAI-compatible endpoint).

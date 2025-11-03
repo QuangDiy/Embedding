@@ -1,11 +1,9 @@
-"""Reranking API endpoints."""
-
 import logging
 from fastapi import APIRouter, HTTPException, status, Depends
 
 from models.schemas import RerankRequest, RerankResponse, RerankResult
 from services.reranking_service import RerankingService
-from api.dependencies import get_reranking_service
+from api.dependencies import get_reranking_service, verify_api_key
 from core.exceptions import ApplicationError, ValidationError, InferenceError
 
 logger = logging.getLogger(__name__)
@@ -16,7 +14,8 @@ router = APIRouter(prefix="/v1", tags=["reranking"])
 @router.post("/rerank", response_model=RerankResponse)
 async def rerank_documents(
     request: RerankRequest,
-    service: RerankingService = Depends(get_reranking_service)
+    service: RerankingService = Depends(get_reranking_service),
+    _: None = Depends(verify_api_key)
 ):
     """
     Rerank documents based on relevance to a query (OpenAI-compatible endpoint).

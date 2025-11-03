@@ -2,19 +2,87 @@
 
 Deploy Jina AI models (Embeddings v3 + Reranker v2) on Triton Inference Server with OpenAI-compatible APIs.
 
+## API Key Configuration
+
+### Sử dụng API Key trong Requests
+
+Service sử dụng **Bearer Token Authentication**:
+
+**Authorization Header:**
+```bash
+curl -X POST http://localhost:8000/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-secret-api-key-here" \
+  -d '{"input": "Hello, world!", "model": "jina-embeddings-v3"}'
+```
+
+### Sử dụng trong Code
+
+**Python với requests:**
+```python
+import requests
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer your-secret-api-key-here"
+}
+
+response = requests.post(
+    "http://localhost:8000/v1/embeddings",
+    headers=headers,
+    json={
+        "input": "Hello, world!",
+        "model": "jina-embeddings-v3"
+    }
+)
+```
+
+**Python với OpenAI SDK:**
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="your-secret-api-key-here",
+    base_url="http://localhost:8000/v1"
+)
+
+response = client.embeddings.create(
+    input="Hello, world!",
+    model="jina-embeddings-v3"
+)
+```
+
+### Lưu ý Bảo mật
+
+⚠️ **QUAN TRỌNG:**
+- **KHÔNG** commit file `.env` vào git
+- Thêm `.env` vào `.gitignore`
+- Sử dụng API key mạnh (ít nhất 32 ký tự ngẫu nhiên)
+- Xoay vòng API key định kỳ
+- Sử dụng HTTPS trong production
+
+**Tạo API key mạnh:**
+```bash
+# Linux/Mac
+openssl rand -hex 32
+
+# hoặc
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
 ## Quick Start
 
 ### Build & Run with Docker Compose
 
 ```bash
 # Build and start services
-docker-compose up --build -d
+docker compose up --build -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop services
-docker-compose down
+docker compose down
 ```
 
 ### Build & Run with Docker (Single Container)
@@ -37,17 +105,37 @@ After starting, services will be available at:
 
 ## Test the Service
 
+**Không có API key (mặc định):**
 ```bash
+# Health check (không cần API key)
 curl http://localhost:8000/health
 
+# Embeddings
 curl -X POST http://localhost:8000/v1/embeddings \
   -H "Content-Type: application/json" \
   -d '{"input": "Hello, world!", "model": "jina-embeddings-v3", "task": "text-matching"}'
 
+# Rerank
 curl -X POST http://localhost:8000/v1/rerank \
   -H "Content-Type: application/json" \
   -d '{"query": "machine learning", "documents": ["AI and ML", "Cooking recipes"], "model": "jina-reranker-v2"}'
+```
 
+**Với API key (Bearer Token):**
+```bash
+# Embeddings
+curl -X POST http://localhost:8000/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-key" \
+  -d '{"input": "Hello, world!", "model": "jina-embeddings-v3"}'
+
+# Rerank
+curl -X POST http://localhost:8000/v1/rerank \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-key" \
+  -d '{"query": "machine learning", "documents": ["AI and ML", "Cooking recipes"], "model": "jina-reranker-v2"}'
+
+# Test script
 python test_api.py
 ```
 
