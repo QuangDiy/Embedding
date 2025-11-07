@@ -2,6 +2,7 @@ import numpy as np
 import tritonclient.http as httpclient
 from typing import List, Dict, Any
 import logging
+from core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,14 @@ class TritonEmbeddingClient:
     def connect(self):
         """Initialize connection with Triton Server"""
         try:
-            self.client = httpclient.InferenceServerClient(url=self.triton_url)
+            settings = get_settings()
+            connection_timeout = getattr(settings, "triton_http_connection_timeout", 300)
+            network_timeout = getattr(settings, "triton_http_network_timeout", 300)
+            self.client = httpclient.InferenceServerClient(
+                url=self.triton_url,
+                connection_timeout=connection_timeout,
+                network_timeout=network_timeout
+            )
             if not self.client.is_server_live():
                 raise RuntimeError("Triton server is not live")
             if not self.client.is_model_ready(self.model_name):

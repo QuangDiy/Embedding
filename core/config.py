@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     triton_url: str = "triton:8000"
+    triton_http_connection_timeout: int = 300
+    triton_http_network_timeout: int = 300
     
     embedding_model_name: str = "jina-embeddings-v3"
     reranker_model_name: str = "jina-reranker-v2"
@@ -16,6 +18,8 @@ class Settings(BaseSettings):
     
     max_sequence_length: int = 8192
     reranker_max_sequence_length: int = 1024 
+    
+    embedding_client_max_batch: int = 8
     
     api_title: str = "Jina AI API"
     api_description: str = "OpenAI-compatible embedding and reranking API powered by Triton Inference Server"
